@@ -1,0 +1,42 @@
+--- libzypp-14.36.0/zypp/target/rpm/BinHeader.h.orig	2015-02-09 16:07:05.000000000 +0100
++++ libzypp-14.36.0/zypp/target/rpm/BinHeader.h	2015-02-17 20:28:45.204574339 +0100
+@@ -110,7 +110,7 @@
+ {
+   public:
+     intList()
+-      : _type( RPM_NULL_TYPE )
++      : _type( static_cast<rpmTagType>(RPM_NULL_TYPE) )
+     {}
+ 
+     bool empty() const
+--- libzypp-14.36.0/zypp/target/rpm/librpm.h.orig	2015-02-09 16:07:05.000000000 +0100
++++ libzypp-14.36.0/zypp/target/rpm/librpm.h	2015-02-18 18:24:23.831261616 +0100
+@@ -15,6 +15,8 @@
+ #ifdef _RPM_5
+ // needs to be outside 'extern "C"'
+ #include <rpm/rpm4compat.h>
++#define _RPMVSF_NOSIGNATURES (RPMVSF_NODSAHEADER | RPMVSF_NORSAHEADER | RPMVSF_NODSA | RPMVSF_NORSA)
++#define	_RPMVSF_NODIGESTS (RPMVSF_NOSHA1HEADER | RPMVSF_NOMD5HEADER | RPMVSF_NOSHA1 | RPMVSF_NOMD5)
+ #endif // _RPM_5
+ 
+ extern "C"
+--- libzypp-14.36.0/zypp/target/rpm/librpmDb.cc.orig	2015-02-09 16:07:05.000000000 +0100
++++ libzypp-14.36.0/zypp/target/rpm/librpmDb.cc	2015-02-18 19:50:12.301045536 +0100
+@@ -101,7 +101,7 @@
+   {
+     if ( _ts )
+     {
+-      ::rpmtsFree(_ts);
++      rpmtsFree(_ts);
+     }
+   }
+ };
+@@ -679,7 +679,7 @@
+     if ( ! create( RPMDBI_PACKAGES ) )
+       return false;
+ #warning TESTCASE: rpmdbAppendIterator and (non)sequential access?
+-#ifdef RPMFILEITERMAX	// since rpm.4.12
++#if defined(_RPM_5) || defined(RPMFILEITERMAX) // since rpm.4.12
+     ::rpmdbAppendIterator( _mi, (const unsigned *)&off_r, 1 );
+ #else
+     ::rpmdbAppendIterator( _mi, &off_r, 1 );
