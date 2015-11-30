@@ -5,12 +5,12 @@
 Summary:	Package management library
 Summary(pl.UTF-8):	Biblioteka do zarządzania pakietami
 Name:		libzypp
-Version:	14.36.0
+Version:	15.19.7
 Release:	1
 License:	GPL v2+
 Group:		Libraries
 Source0:	https://github.com/openSUSE/libzypp/archive/%{version}/%{name}-%{version}.tar.gz
-# Source0-md5:	ebf8051e811361188008fa5396233023
+# Source0-md5:	b1e0e7f1cc7f6078655a3532f8e2f14a
 Patch0:		%{name}-rpm5.patch
 Patch1:		%{name}-includes.patch
 Patch2:		%{name}-link.patch
@@ -111,7 +111,7 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_bindir}/zypp-CheckAccessDeleted
 %attr(755,root,root) %{_bindir}/zypp-NameReqPrv
 %attr(755,root,root) %{_libdir}/libzypp.so.*.*.*
-%attr(755,root,root) %ghost %{_libdir}/libzypp.so.1430
+%attr(755,root,root) %ghost %{_libdir}/libzypp.so.1519
 %dir %{_libdir}/zypp
 %attr(755,root,root) %{_libdir}/zypp/notify-message
 %{_datadir}/zypp
