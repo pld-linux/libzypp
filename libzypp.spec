@@ -5,12 +5,13 @@
 Summary:	Package management library
 Summary(pl.UTF-8):	Biblioteka do zarządzania pakietami
 Name:		libzypp
-Version:	15.19.7
+Version:	17.18.0
 Release:	1
 License:	GPL v2+
 Group:		Libraries
+#Source0Download: https://github.com/openSUSE/libzypp/releases
 Source0:	https://github.com/openSUSE/libzypp/archive/%{version}/%{name}-%{version}.tar.gz
-# Source0-md5:	b1e0e7f1cc7f6078655a3532f8e2f14a
+# Source0-md5:	8bbdddd5d7fb9b123c29dbf4da45ae89
 Patch0:		%{name}-rpm5.patch
 Patch1:		%{name}-includes.patch
 Patch2:		%{name}-link.patch
@@ -21,10 +22,11 @@ BuildRequires:	curl-devel
 %{?with_apidocs:BuildRequires:	doxygen}
 BuildRequires:	expat-devel >= 1.95
 BuildRequires:	gettext-tools
+BuildRequires:	gpgme-devel
 BuildRequires:	libproxy-devel
 # with helixrepo enabled
 BuildRequires:	libsolv-devel >= 0.6.8
-BuildRequires:	libstdc++-devel >= 6:4.7
+BuildRequires:	libstdc++-devel >= 6:5
 BuildRequires:	libxml2-devel >= 2.0
 BuildRequires:	openssl-devel
 BuildRequires:	rpm-devel >= 5
@@ -49,7 +51,7 @@ Requires:	%{name} = %{version}-%{release}
 Requires:	boost-devel
 Requires:	curl-devel
 Requires:	libsolv-devel >= 0.6.8
-Requires:	libstdc++-devel
+Requires:	libstdc++-devel >= 6:5
 Requires:	libxml2-devel >= 2.0
 Requires:	rpm-devel >= 5
 
@@ -105,15 +107,14 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(644,root,root,755)
 %doc COPYING
 %dir %{_sysconfdir}/zypp
+%config(noreplace) %verify(not mtime md5 size) %{_sysconfdir}/zypp/needreboot
 %config(noreplace) %verify(not mtime md5 size) %{_sysconfdir}/zypp/systemCheck
 %config(noreplace) %verify(not mtime md5 size) %{_sysconfdir}/zypp/zypp.conf
 %config(noreplace) %verify(not mtime md5 size) /etc/logrotate.d/zypp-history.lr
 %attr(755,root,root) %{_bindir}/zypp-CheckAccessDeleted
 %attr(755,root,root) %{_bindir}/zypp-NameReqPrv
 %attr(755,root,root) %{_libdir}/libzypp.so.*.*.*
-%attr(755,root,root) %ghost %{_libdir}/libzypp.so.1519
-%dir %{_libdir}/zypp
-%attr(755,root,root) %{_libdir}/zypp/notify-message
+%attr(755,root,root) %ghost %{_libdir}/libzypp.so.1712
 %{_datadir}/zypp
 %{_mandir}/man1/zypp-CheckAccessDeleted.1*
 %{_mandir}/man1/zypp-NameReqPrv.1*
