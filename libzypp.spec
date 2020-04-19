@@ -1,36 +1,45 @@
 #
 # Conditional build:
 %bcond_without	apidocs		# do not build and package API docs
+%bcond_with	rpm4		# rpm.org 4.x instead of rpm5
+%bcond_with	zchunk		# zchunk compression
 #
 Summary:	Package management library
 Summary(pl.UTF-8):	Biblioteka do zarządzania pakietami
 Name:		libzypp
-Version:	17.18.0
+Version:	17.23.4
 Release:	1
 License:	GPL v2+
 Group:		Libraries
 #Source0Download: https://github.com/openSUSE/libzypp/releases
 Source0:	https://github.com/openSUSE/libzypp/archive/%{version}/%{name}-%{version}.tar.gz
-# Source0-md5:	8bbdddd5d7fb9b123c29dbf4da45ae89
+# Source0-md5:	699b0c0864293a0cbc10c4b9b7a31d4a
 Patch0:		%{name}-rpm5.patch
-Patch1:		%{name}-includes.patch
-Patch2:		%{name}-link.patch
+Patch1:		%{name}-link.patch
 URL:		https://en.opensuse.org/Portal:Libzypp
 BuildRequires:	boost-devel
-BuildRequires:	cmake >= 2.6
+BuildRequires:	cmake >= 3.1
 BuildRequires:	curl-devel
 %{?with_apidocs:BuildRequires:	doxygen}
 BuildRequires:	expat-devel >= 1.95
 BuildRequires:	gettext-tools
+BuildRequires:	glib2-devel >= 2.0
 BuildRequires:	gpgme-devel
 BuildRequires:	libproxy-devel
+BuildRequires:	libsigc++-devel >= 2.0
 # with helixrepo enabled
 BuildRequires:	libsolv-devel >= 0.6.8
 BuildRequires:	libstdc++-devel >= 6:5
 BuildRequires:	libxml2-devel >= 2.0
 BuildRequires:	openssl-devel
+BuildRequires:	pkgconfig
+%if %{with rpm4}
+BuildRequires:	rpm-devel >= 4.15
+%else
 BuildRequires:	rpm-devel >= 5
+%endif
 BuildRequires:	udev-devel
+%{?with_zchunk:BuildRequires:	zchunk-devel}
 BuildRequires:	zlib-devel
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
@@ -53,7 +62,11 @@ Requires:	curl-devel
 Requires:	libsolv-devel >= 0.6.8
 Requires:	libstdc++-devel >= 6:5
 Requires:	libxml2-devel >= 2.0
+%if %{with rpm4}
+Requires:	rpm-devel >= 4.15
+%else
 Requires:	rpm-devel >= 5
+%endif
 
 %description devel
 Header files for Zypp library.
@@ -74,16 +87,21 @@ Dokumentacja API biblioteki Zypp.
 
 %prep
 %setup -q
+%if %{without rpm4}
 %patch0 -p1
+%endif
 %patch1 -p1
-%patch2 -p1
 
 %build
 install -d build
 cd build
+# MEDIABACKEND_TESTS require nginx+fcgi+fcgi++
 %cmake .. \
 	%{?with_apidocs:-DENABLE_BUILD_DOCS=ON} \
-	-DENABLE_BUILD_TRANS=ON
+	-DENABLE_BUILD_TRANS=ON \
+	-DDISABLE_MEDIABACKEND_TESTS=ON \
+	%{?with_zchunk:-DENABLE_ZCHUNK_COMPRESSION=ON}
+
 %{__make}
 
 %install
@@ -114,7 +132,7 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_bindir}/zypp-CheckAccessDeleted
 %attr(755,root,root) %{_bindir}/zypp-NameReqPrv
 %attr(755,root,root) %{_libdir}/libzypp.so.*.*.*
-%attr(755,root,root) %ghost %{_libdir}/libzypp.so.1712
+%attr(755,root,root) %ghost %{_libdir}/libzypp.so.1722
 %{_datadir}/zypp
 %{_mandir}/man1/zypp-CheckAccessDeleted.1*
 %{_mandir}/man1/zypp-NameReqPrv.1*
