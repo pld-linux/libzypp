@@ -43,10 +43,10 @@
      }
    }
  };
-@@ -679,7 +679,7 @@
+@@ -597,7 +597,7 @@
+   {
      if ( ! create( RPMDBI_PACKAGES ) )
        return false;
- #warning TESTCASE: rpmdbAppendIterator and (non)sequential access?
 -#ifdef RPMFILEITERMAX	// since rpm.4.12
 +#if defined(_RPM_5) || defined(RPMFILEITERMAX) // since rpm.4.12
      ::rpmdbAppendIterator( _mi, (const unsigned *)&off_r, 1 );
