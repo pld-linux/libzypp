@@ -1,19 +1,19 @@
 #
 # Conditional build:
 %bcond_without	apidocs		# do not build and package API docs
-%bcond_with	rpm4		# rpm.org 4.x instead of rpm5
+%bcond_with	rpm5		# rpm5 fork instead of rpm.org
 %bcond_with	zchunk		# zchunk compression
 #
 Summary:	Package management library
 Summary(pl.UTF-8):	Biblioteka do zarządzania pakietami
 Name:		libzypp
-Version:	17.25.5
+Version:	17.25.8
 Release:	1
 License:	GPL v2+
 Group:		Libraries
 #Source0Download: https://github.com/openSUSE/libzypp/releases
 Source0:	https://github.com/openSUSE/libzypp/archive/%{version}/%{name}-%{version}.tar.gz
-# Source0-md5:	0998bb038f4463c6b74e34d2afda4cc9
+# Source0-md5:	c1913c5847fe481d595ed49c8ece8b60
 Patch0:		%{name}-rpm5.patch
 Patch1:		%{name}-link.patch
 URL:		https://en.opensuse.org/Portal:Libzypp
@@ -33,10 +33,10 @@ BuildRequires:	libstdc++-devel >= 6:5
 BuildRequires:	libxml2-devel >= 2.0
 BuildRequires:	openssl-devel
 BuildRequires:	pkgconfig
-%if %{with rpm4}
-BuildRequires:	rpm-devel >= 4.15
-%else
+%if %{with rpm5}
 BuildRequires:	rpm-devel >= 5
+%else
+BuildRequires:	rpm-devel >= 1:4.15
 %endif
 BuildRequires:	udev-devel
 %{?with_zchunk:BuildRequires:	zchunk-devel}
@@ -62,10 +62,10 @@ Requires:	curl-devel
 Requires:	libsolv-devel >= 0.6.8
 Requires:	libstdc++-devel >= 6:5
 Requires:	libxml2-devel >= 2.0
-%if %{with rpm4}
-Requires:	rpm-devel >= 4.15
-%else
+%if %{with rpm5}
 Requires:	rpm-devel >= 5
+%else
+Requires:	rpm-devel >= 1:4.15
 %endif
 
 %description devel
@@ -87,7 +87,7 @@ Dokumentacja API biblioteki Zypp.
 
 %prep
 %setup -q
-%if %{without rpm4}
+%if %{with rpm5}
 %patch0 -p1
 %endif
 %patch1 -p1
