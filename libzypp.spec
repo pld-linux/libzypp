@@ -7,13 +7,13 @@
 Summary:	Package management library
 Summary(pl.UTF-8):	Biblioteka do zarządzania pakietami
 Name:		libzypp
-Version:	17.25.8
+Version:	17.28.0
 Release:	1
 License:	GPL v2+
 Group:		Libraries
 #Source0Download: https://github.com/openSUSE/libzypp/releases
 Source0:	https://github.com/openSUSE/libzypp/archive/%{version}/%{name}-%{version}.tar.gz
-# Source0-md5:	c1913c5847fe481d595ed49c8ece8b60
+# Source0-md5:	2607d7d977f5995a89feb05d7a3530bd
 Patch0:		%{name}-rpm5.patch
 Patch1:		%{name}-link.patch
 URL:		https://en.opensuse.org/Portal:Libzypp
@@ -33,12 +33,14 @@ BuildRequires:	libstdc++-devel >= 6:5
 BuildRequires:	libxml2-devel >= 2.0
 BuildRequires:	openssl-devel
 BuildRequires:	pkgconfig
+BuildRequires:	protobuf-devel >= 3.8.0
 %if %{with rpm5}
 BuildRequires:	rpm-devel >= 5
 %else
 BuildRequires:	rpm-devel >= 1:4.15
 %endif
 BuildRequires:	udev-devel
+BuildRequires:	yaml-cpp-devel
 %{?with_zchunk:BuildRequires:	zchunk-devel}
 BuildRequires:	zlib-devel
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
@@ -97,6 +99,7 @@ install -d build
 cd build
 # MEDIABACKEND_TESTS require nginx+fcgi+fcgi++
 %cmake .. \
+	-DCMAKE_INSTALL_LIBDIR=%{_lib} \
 	%{?with_apidocs:-DENABLE_BUILD_DOCS=ON} \
 	-DENABLE_BUILD_TRANS=ON \
 	-DDISABLE_MEDIABACKEND_TESTS=ON \
@@ -133,6 +136,8 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_bindir}/zypp-NameReqPrv
 %attr(755,root,root) %{_libdir}/libzypp.so.*.*.*
 %attr(755,root,root) %ghost %{_libdir}/libzypp.so.1722
+%dir %{_libexecdir}/zypp
+%attr(755,root,root) %{_libexecdir}/zypp/zypp-rpm
 %{_datadir}/zypp
 %{_mandir}/man1/zypp-CheckAccessDeleted.1*
 %{_mandir}/man1/zypp-NameReqPrv.1*
@@ -142,6 +147,7 @@ rm -rf $RPM_BUILD_ROOT
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/libzypp.so
 %{_includedir}/zypp
+%{_includedir}/zypp-core
 %{_pkgconfigdir}/libzypp.pc
 %{_datadir}/cmake/Modules/FindZypp.cmake
 %{_datadir}/cmake/Modules/ZyppCommon.cmake

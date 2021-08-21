@@ -63,3 +63,219 @@
  #else
      ::rpmtsSetVfyFlags( ts, RPMVSF_DEFAULT );
  #endif
+--- libzypp-17.28.0/cmake/modules/FindRpm.cmake.orig	2021-08-20 17:36:11.046734423 +0200
++++ libzypp-17.28.0/cmake/modules/FindRpm.cmake	2021-08-20 17:41:02.701821059 +0200
+@@ -9,6 +9,7 @@ endif(RPM_INCLUDE_DIR AND RPM_LIBRARY)
+ 
+ set(RPM_LIBRARY)
+ set(RPMIO_LIBRARY)
++set(RPMDB_LIBRARY)
+ set(RPM_INCLUDE_DIR)
+ 
+ FIND_PATH(RPM_INCLUDE_DIR rpm/rpmdb.h
+@@ -40,6 +41,12 @@ FIND_LIBRARY(RPMIO_LIBRARY NAMES rpmio
+ 	PATHS
+ 	/usr/lib
+ 	/usr/local/lib
++)
++
++FIND_LIBRARY(RPMDB_LIBRARY NAMES rpmdb
++	PATHS
++	/usr/lib
++	/usr/local/lib
+ )
+ 
+ 
+@@ -49,7 +49,7 @@ if(RPM_INCLUDE_DIR AND RPM_LIBRARY AND R
+    if ( "${RPM_SUSPECT_VERSION}" STREQUAL "4.x" )
+      set( ZYPP_RPM_VERSION_INCL "rpm/rpmlib.h" )
+    else()
+-     set( ZYPP_RPM_VERSION_INCL "rpm/rpmtag.h" )
++     set( ZYPP_RPM_VERSION_INCL "rpm/rpmversion.h" )
+    endif()
+ 
+    configure_file( "${CMAKE_CURRENT_LIST_DIR}/printrpmver.c.in"
+@@ -59,7 +59,7 @@ if(RPM_INCLUDE_DIR AND RPM_LIBRARY AND R
+       "${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp"
+       "${CMAKE_BINARY_DIR}${CMAKE_FILES_DIRECTORY}/CMakeTmp/printrpmver.c"
+       LINK_LIBRARIES ${RPM_LIBRARY}
+-      CMAKE_FLAGS -DINCLUDE_DIRECTORIES="${RPM_INCLUDE_DIR}"
++      CMAKE_FLAGS "-DINCLUDE_DIRECTORIES=${RPM_INCLUDE_DIR};${RPM_INCLUDE_DIR}/rpm"
+       COMPILE_DEFINITIONS ${CMAKE_REQUIRED_DEFINITIONS}
+       COMPILE_OUTPUT_VARIABLE RPM_PRINTVER_COMPILE_OUTPUT
+       RUN_OUTPUT_VARIABLE RPM_LIB_VER
+--- libzypp-17.28.0/zypp/target/rpm/RpmHeader.cc.orig	2021-07-28 10:11:19.000000000 +0200
++++ libzypp-17.28.0/zypp/target/rpm/RpmHeader.cc	2021-08-20 23:16:04.966251078 +0200
+@@ -10,6 +10,13 @@
+  *
+ */
+ #include "librpm.h"
++extern "C" {
++#undef rpmtsFree
++rpmts rpmtsFree(rpmts _ts)
++{
++	return ((rpmts) rpmioFreePoolItem((rpmioItem)(_ts), __FUNCTION__, __FILE__, __LINE__));
++}
++}
+ 
+ #include <zypp/AutoDispose.h>
+ 
+--- libzypp-17.28.0/tools/zypp-rpm/BinHeader.h.orig	2021-08-21 08:09:53.426071355 +0200
++++ libzypp-17.28.0/tools/zypp-rpm/BinHeader.h	2021-08-21 08:10:04.702676931 +0200
+@@ -106,7 +106,7 @@ class BinHeader::intList : private zypp:
+ {
+   public:
+     intList()
+-      : _type( RPM_NULL_TYPE )
++      : _type( static_cast<rpmTagType>(RPM_NULL_TYPE) )
+     {}
+ 
+     bool empty() const
+--- libzypp-17.28.0/tools/zypp-rpm/main.cc.orig	2021-07-28 10:11:19.000000000 +0200
++++ libzypp-17.28.0/tools/zypp-rpm/main.cc	2021-08-21 09:16:51.957634435 +0200
+@@ -19,6 +19,29 @@ extern "C"
+ {
+ #include <rpm/rpmcli.h>
+ #include <rpm/rpmlog.h>
++#include <rpm/rpm46compat.h>
++
++/* libzypp needs functions, not define wrappers */
++#undef headerFree
++Header headerFree(Header h)
++{
++	return ((Header)rpmioFreePoolItem((rpmioItem)(h), __FUNCTION__, __FILE__, __LINE__));
++}
++
++#undef rpmpsFree
++rpmps rpmpsFree(rpmps ps)
++{
++	return ((rpmps)rpmioFreePoolItem((rpmioItem)(ps), __FUNCTION__, __FILE__, __LINE__));
++}
++
++#undef rpmtsFree
++rpmts rpmtsFree(rpmts ts)
++{
++	return ((rpmts) rpmioFreePoolItem((rpmioItem)(ts), __FUNCTION__, __FILE__, __LINE__));
++}
++
++/* available in rpmts.h only with _RPMTS_INTERNAL, which requires more internal headers */
++void rpmtsSetScriptFd(rpmts ts, FD_t scriptFd);
+ }
+ 
+ #include "BinHeader.h"
+@@ -54,8 +65,9 @@ void rpmpsPrintToStream ( Stream &str, r
+ 
+   rpmProblem p;
+   zypp::AutoDispose<rpmpsi> psi ( ::rpmpsInitIterator(ps), ::rpmpsFreeIterator );
+-  while ((p = rpmpsiNext(psi))) {
+-    zypp::AutoFREE<char> msg( rpmProblemString(p) );
++  while (rpmpsNextIterator(psi) >= 0) {
++    p = rpmpsProblem(psi);
++    zypp::AutoFREE<char> msg( const_cast<char*>(rpmProblemString(p)) );
+     str << "\t" << msg << std::endl;
+   }
+ }
+@@ -100,8 +112,9 @@ bool pushTransactionErrorMessage ( rpmps
+ 
+   rpmProblem p;
+   zypp::AutoDispose<rpmpsi> psi ( ::rpmpsInitIterator(ps), ::rpmpsFreeIterator );
+-  while ((p = rpmpsiNext(psi))) {
+-    zypp::AutoFREE<char> msg( rpmProblemString(p) );
++  while (rpmpsNextIterator(psi) >= 0) {
++    p = rpmpsProblem(psi);
++    zypp::AutoFREE<char> msg( const_cast<char*>(rpmProblemString(p)) );
+ 
+     zypp::proto::target::TransactionProblemDesc desc;
+     desc.set_message( zypp::str::asString( msg.value() ) );
+@@ -145,7 +158,6 @@ std::pair<RpmHeader, int> readPackage( r
+   return std::make_pair( h, res );
+ }
+ 
+-
+ struct TransactionData {
+   zypp::proto::target::Commit &commitData;
+ 
+@@ -242,10 +254,10 @@ int main( int, char ** )
+     tsFlags |= RPMTRANS_FLAG_NOSCRIPTS;
+ 
+   // setup transaction settings
+-  ::rpmtsSetFlags( ts, tsFlags );
++  ::rpmtsSetFlags( ts, static_cast<rpmtransFlags>(tsFlags) );
+ 
+   // set the verify flags so readPackage does the right thing
+-  ::rpmtsSetVSFlags( ts, tsVerifyFlags );
++  ::rpmtsSetVSFlags( ts, static_cast<rpmVSFlags>(tsVerifyFlags) );
+ 
+ #ifdef HAVE_RPMTSSETVFYLEVEL
+   {
+@@ -437,7 +449,7 @@ int main( int, char ** )
+   // the way how libRPM works is that it will try to install all packages even if some of them fail
+   // we need to go over the rpm problem set to mark those steps that have failed, we get no other hint on wether
+   // it worked or not
+-  const auto transRes = ::rpmtsRun( ts, nullptr, tsProbFilterFlags );
++  const auto transRes = ::rpmtsRun( ts, nullptr, static_cast<rpmprobFilterFlags>(tsProbFilterFlags) );
+   //data.finishCurrentStep( );
+ 
+   if ( transRes != 0 ) {
+@@ -545,13 +557,13 @@ void *rpmLibCallback( const void *h, con
+           fd = NULL;
+         }
+       } else
+-        fd = fdLink(fd);
++        fd = fdLink(fd, NULL);
+       return (void *)fd;
+       break;
+     }
+ 
+     case RPMCALLBACK_INST_CLOSE_FILE:
+-      fd = fdFree(fd);
++      fd = fdFree(fd, NULL);
+       if (fd != NULL) {
+         Fclose(fd);
+         fd = NULL;
+--- libzypp-17.28.0/tools/zypp-rpm/BinHeader.cc.orig	2021-07-28 10:11:19.000000000 +0200
++++ libzypp-17.28.0/tools/zypp-rpm/BinHeader.cc	2021-08-21 09:22:06.735929134 +0200
+@@ -10,15 +10,6 @@
+  *
+ */
+ 
+-extern "C"
+-{
+-#ifdef _RPM_5
+-#undef RPM_NULL_TYPE
+-#define RPM_NULL_TYPE rpmTagType(0)
+-typedef rpmuint32_t rpm_count_t;
+-#endif
+-}
+-
+ #include <iostream>
+ 
+ #include <zypp-core/base/Logger.h>
+@@ -28,6 +19,17 @@ typedef rpmuint32_t rpm_count_t;
+ 
+ #include "BinHeader.h"
+ 
++extern "C"
++{
++#include "rpm46compat.h"
++
++#ifdef _RPM_5
++#undef RPM_NULL_TYPE
++#define RPM_NULL_TYPE rpmTagType(0)
++typedef rpmuint32_t rpm_count_t;
++#endif
++}
++
+ using std::endl;
+ using namespace zypp;
+ 
+--- libzypp-17.28.0/tools/zypp-rpm/CMakeLists.txt.orig	2021-07-28 10:11:19.000000000 +0200
++++ libzypp-17.28.0/tools/zypp-rpm/CMakeLists.txt	2021-08-21 09:25:40.134773054 +0200
+@@ -37,6 +37,6 @@ target_link_libraries( ${PROJECT_NAME} z
+ target_link_libraries( ${PROJECT_NAME} zypp-protobuf )
+ target_link_libraries( ${PROJECT_NAME} util )
+ target_link_libraries( ${PROJECT_NAME} ${PROTOBUF_LITE_LIBRARIES} )
+-target_link_libraries( ${PROJECT_NAME} ${RPM_LIBRARY} ${RPMIO_LIBRARY} )
++target_link_libraries( ${PROJECT_NAME} ${RPM_LIBRARY} ${RPMIO_LIBRARY} ${RPMDB_LIBRARY})
+ 
+ INSTALL( TARGETS ${PROJECT_NAME}	DESTINATION "${ZYPP_LIBEXEC_INSTALL_DIR}" )
