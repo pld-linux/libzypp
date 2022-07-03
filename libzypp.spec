@@ -1,19 +1,19 @@
 #
 # Conditional build:
-%bcond_without	apidocs		# do not build and package API docs
+%bcond_without	apidocs		# API documentation
 %bcond_with	rpm5		# rpm5 fork instead of rpm.org
 %bcond_with	zchunk		# zchunk compression
 #
 Summary:	Package management library
 Summary(pl.UTF-8):	Biblioteka do zarządzania pakietami
 Name:		libzypp
-Version:	17.30.0
+Version:	17.30.2
 Release:	1
 License:	GPL v2+
 Group:		Libraries
 #Source0Download: https://github.com/openSUSE/libzypp/releases
 Source0:	https://github.com/openSUSE/libzypp/archive/%{version}/%{name}-%{version}.tar.gz
-# Source0-md5:	51bfd25a747e45e1e684d474f5cbefe8
+# Source0-md5:	41dd68193a4ccf0085130d1d70010447
 Patch0:		%{name}-rpm5.patch
 Patch1:		%{name}-link.patch
 URL:		https://en.opensuse.org/Portal:Libzypp
