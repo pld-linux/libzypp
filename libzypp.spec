@@ -7,15 +7,16 @@
 Summary:	Package management library
 Summary(pl.UTF-8):	Biblioteka do zarządzania pakietami
 Name:		libzypp
-Version:	17.31.8
+Version:	17.31.9
 Release:	1
 License:	GPL v2+
 Group:		Libraries
 #Source0Download: https://github.com/openSUSE/libzypp/tags
 Source0:	https://github.com/openSUSE/libzypp/archive/%{version}/%{name}-%{version}.tar.gz
-# Source0-md5:	018db968d114db936c79655f632f2bef
+# Source0-md5:	b21539939f0b885b633914ba00c4e1af
 Patch0:		%{name}-rpm5.patch
 Patch1:		%{name}-link.patch
+Patch2:		%{name}-gpgme-pkgconfig.patch
 URL:		https://en.opensuse.org/Portal:Libzypp
 BuildRequires:	boost-devel
 BuildRequires:	cmake >= 3.1
@@ -93,6 +94,7 @@ Dokumentacja API biblioteki Zypp.
 %patch0 -p1
 %endif
 %patch1 -p1
+%patch2 -p1
 
 %build
 install -d build
