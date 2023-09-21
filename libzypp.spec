@@ -7,13 +7,13 @@
 Summary:	Package management library
 Summary(pl.UTF-8):	Biblioteka do zarządzania pakietami
 Name:		libzypp
-Version:	17.31.9
+Version:	17.31.20
 Release:	1
 License:	GPL v2+
 Group:		Libraries
 #Source0Download: https://github.com/openSUSE/libzypp/tags
 Source0:	https://github.com/openSUSE/libzypp/archive/%{version}/%{name}-%{version}.tar.gz
-# Source0-md5:	b21539939f0b885b633914ba00c4e1af
+# Source0-md5:	0fc9a2709d62e37bf8ee021b92a9559a
 Patch0:		%{name}-rpm5.patch
 Patch1:		%{name}-link.patch
 Patch2:		%{name}-gpgme-pkgconfig.patch
@@ -138,6 +138,7 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_bindir}/zypp-NameReqPrv
 %attr(755,root,root) %{_libdir}/libzypp.so.*.*.*
 %attr(755,root,root) %ghost %{_libdir}/libzypp.so.1722
+%attr(755,root,root) %{_libdir}/libzypp-tui.so
 %dir %{_libexecdir}/zypp
 %attr(755,root,root) %{_libexecdir}/zypp/zypp-rpm
 %{_datadir}/zypp
@@ -152,6 +153,7 @@ rm -rf $RPM_BUILD_ROOT
 %{_includedir}/zypp-core
 %{_includedir}/zypp-curl
 %{_includedir}/zypp-media
+%{_includedir}/zypp-tui
 %{_pkgconfigdir}/libzypp.pc
 %{_datadir}/cmake/Modules/FindZypp.cmake
 %{_datadir}/cmake/Modules/ZyppCommon.cmake
