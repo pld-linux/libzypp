@@ -2,21 +2,23 @@
 # Conditional build:
 %bcond_without	apidocs		# API documentation
 %bcond_with	rpm5		# rpm5 fork instead of rpm.org
-%bcond_with	zchunk		# zchunk compression
+%bcond_without	zchunk		# zchunk compression
+%bcond_without	zstd		# Zstandard compression
 #
 Summary:	Package management library
 Summary(pl.UTF-8):	Biblioteka do zarządzania pakietami
 Name:		libzypp
-Version:	17.31.20
+Version:	17.31.25
 Release:	1
 License:	GPL v2+
 Group:		Libraries
 #Source0Download: https://github.com/openSUSE/libzypp/tags
 Source0:	https://github.com/openSUSE/libzypp/archive/%{version}/%{name}-%{version}.tar.gz
-# Source0-md5:	0fc9a2709d62e37bf8ee021b92a9559a
+# Source0-md5:	0d5335fab74f93b8e0fc12c86af960f0
 Patch0:		%{name}-rpm5.patch
 Patch1:		%{name}-link.patch
 Patch2:		%{name}-gpgme-pkgconfig.patch
+Patch3:		%{name}-libxml2.patch
 URL:		https://en.opensuse.org/Portal:Libzypp
 BuildRequires:	boost-devel
 BuildRequires:	cmake >= 3.1
@@ -44,6 +46,7 @@ BuildRequires:	udev-devel
 BuildRequires:	yaml-cpp-devel
 %{?with_zchunk:BuildRequires:	zchunk-devel}
 BuildRequires:	zlib-devel
+%{?with_zstd:BuildRequires:	zstd-devel}
 BuildRoot:	%{tmpdir}/%{name}-%{version}-root-%(id -u -n)
 
 %description
@@ -95,6 +98,7 @@ Dokumentacja API biblioteki Zypp.
 %endif
 %patch1 -p1
 %patch2 -p1
+%patch3 -p1
 
 %build
 install -d build
@@ -105,7 +109,8 @@ cd build
 	%{?with_apidocs:-DENABLE_BUILD_DOCS=ON} \
 	-DENABLE_BUILD_TRANS=ON \
 	-DDISABLE_MEDIABACKEND_TESTS=ON \
-	%{?with_zchunk:-DENABLE_ZCHUNK_COMPRESSION=ON}
+	%{?with_zchunk:-DENABLE_ZCHUNK_COMPRESSION=ON} \
+	%{?with_zstd:-DENABLE_ZSTD_COMPRESSION=ON}
 
 %{__make}
 

@@ -1,0 +1,20 @@
+--- libzypp-17.31.25/zypp/parser/xml/Reader.cc.orig	2023-12-14 11:09:38.000000000 +0100
++++ libzypp-17.31.25/zypp/parser/xml/Reader.cc	2023-12-16 18:25:50.480719604 +0100
+@@ -50,7 +50,7 @@ namespace zypp
+ 
+ 
+       std::list<std::string> structuredErrors;
+-      void structuredErrorFunc( void * userData, xmlErrorPtr error )
++      void structuredErrorFunc( void * userData, const xmlError *error )
+       {
+         if ( error )
+         {
+#@@ -116,7 +116,7 @@ namespace zypp
+#       // set error handler
+#       // TODO: Fix using a global lastStructuredError string is not reentrant.
+#       structuredErrors.clear();
+#-      xmlTextReaderSetStructuredErrorHandler( _reader, structuredErrorFunc, NULL );
+#+      xmlTextReaderSetStructuredErrorHandler( _reader, &structuredErrorFunc, NULL );
+#       // TODO: set validation
+# 
+#       // advance to 1st node
