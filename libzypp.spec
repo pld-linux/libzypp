@@ -8,17 +8,14 @@
 Summary:	Package management library
 Summary(pl.UTF-8):	Biblioteka do zarządzania pakietami
 Name:		libzypp
-Version:	17.31.25
+Version:	17.35.10
 Release:	1
 License:	GPL v2+
 Group:		Libraries
 #Source0Download: https://github.com/openSUSE/libzypp/tags
 Source0:	https://github.com/openSUSE/libzypp/archive/%{version}/%{name}-%{version}.tar.gz
-# Source0-md5:	0d5335fab74f93b8e0fc12c86af960f0
+# Source0-md5:	e92b13fc5aed1ea44a68f71032c670b6
 Patch0:		%{name}-rpm5.patch
-Patch1:		%{name}-link.patch
-Patch2:		%{name}-gpgme-pkgconfig.patch
-Patch3:		%{name}-libxml2.patch
 URL:		https://en.opensuse.org/Portal:Libzypp
 BuildRequires:	boost-devel
 BuildRequires:	cmake >= 3.1
@@ -27,7 +24,7 @@ BuildRequires:	curl-devel
 BuildRequires:	expat-devel >= 1.95
 BuildRequires:	gettext-tools
 BuildRequires:	glib2-devel >= 2.0
-BuildRequires:	gpgme-devel
+BuildRequires:	gpgme-devel >= 1.8.0
 BuildRequires:	libproxy-devel
 BuildRequires:	libsigc++-devel >= 2.0
 # with helixrepo enabled
@@ -96,9 +93,6 @@ Dokumentacja API biblioteki Zypp.
 %if %{with rpm5}
 %patch0 -p1
 %endif
-%patch1 -p1
-%patch2 -p1
-%patch3 -p1
 
 %build
 install -d build
@@ -142,8 +136,7 @@ rm -rf $RPM_BUILD_ROOT
 %attr(755,root,root) %{_bindir}/zypp-CheckAccessDeleted
 %attr(755,root,root) %{_bindir}/zypp-NameReqPrv
 %attr(755,root,root) %{_libdir}/libzypp.so.*.*.*
-%attr(755,root,root) %ghost %{_libdir}/libzypp.so.1722
-%attr(755,root,root) %{_libdir}/libzypp-tui.so
+%attr(755,root,root) %ghost %{_libdir}/libzypp.so.1735
 %dir %{_libexecdir}/zypp
 %attr(755,root,root) %{_libexecdir}/zypp/zypp-rpm
 %{_datadir}/zypp
@@ -154,6 +147,7 @@ rm -rf $RPM_BUILD_ROOT
 %files devel
 %defattr(644,root,root,755)
 %attr(755,root,root) %{_libdir}/libzypp.so
+%{_libdir}/libzypp-tui.a
 %{_includedir}/zypp
 %{_includedir}/zypp-core
 %{_includedir}/zypp-curl
