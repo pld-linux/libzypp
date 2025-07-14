@@ -91,7 +91,7 @@ Dokumentacja API biblioteki Zypp.
 %prep
 %setup -q
 %if %{with rpm5}
-%patch0 -p1
+%patch -P0 -p1
 %endif
 
 %build
